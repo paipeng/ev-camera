@@ -62,6 +62,10 @@ public class MainActivity extends Activity {
                 String cameraId = manager.getCameraIdList()[0];
                 CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
                 StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+                Size[] sizes = map.getOutputSizes(SurfaceTexture.class);
+                for (Size size : sizes) {
+                    Log.d(TAG, "size " + size.getWidth() + " - " + size.getHeight());
+                }
                 mPreviewSize = map.getOutputSizes(SurfaceTexture.class)[0];
 
                 manager.openCamera(cameraId, mStateCallback, null);
@@ -92,7 +96,11 @@ public class MainActivity extends Activity {
                 return;
             }
 
+
             texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
+
+            mTextureView.setRotation(-90.0f);
+
             Surface surface = new Surface(texture);
 
             try {
@@ -162,7 +170,7 @@ public class MainActivity extends Activity {
         //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
 
-        mTextureView = (TextureView) findViewById(R.id.textureView1);
+        mTextureView = (TextureView) findViewById(R.id.cameraPreviewTextureView);
         mTextureView.setSurfaceTextureListener(mSurfaceTextureListner);
     }
 
