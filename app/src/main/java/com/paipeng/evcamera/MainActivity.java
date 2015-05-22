@@ -21,8 +21,10 @@ import android.view.Display;
 import android.view.Gravity;
 import android.view.Surface;
 import android.view.TextureView;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
@@ -52,10 +54,19 @@ public class MainActivity extends Activity {
         //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
 
         textureView = new AutoFitTextureView((TextureView) findViewById(R.id.cameraPreviewTextureView));
-        cameraHelper = new CameraHelper(this, textureView);
 
         previewOverlay = (PreviewOverlay) findViewById(R.id.previewOverlay);
+        cameraHelper = new CameraHelper(this, textureView, previewOverlay);
         //mTextureView.setRotation(-90.0f);
+
+        Button captueButton = (Button) findViewById(R.id.captueButton);
+        captueButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "capture");
+                cameraHelper.setExposureCompensation();
+            }
+        });
     }
 
     @Override
