@@ -49,9 +49,9 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
 
-        textureView = (AutoFitTextureView) findViewById(R.id.cameraPreviewTextureView);
+        textureView = new AutoFitTextureView((TextureView) findViewById(R.id.cameraPreviewTextureView));
         cameraHelper = new CameraHelper(this, textureView);
-        textureView.setSurfaceTextureListener(textureView.getSurfaceTextureListener());
+
         //mTextureView.setRotation(-90.0f);
     }
 

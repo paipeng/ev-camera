@@ -33,14 +33,16 @@ import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
+import android.view.View;
 
 import java.util.Arrays;
 
 /**
  * A {@link TextureView} that can be adjusted to a specified aspect ratio.
  */
-public class AutoFitTextureView extends TextureView {
+public class AutoFitTextureView implements TextureView.SurfaceTextureListener{
     private static final String TAG = AutoFitTextureView.class.getSimpleName();
+    private TextureView textureView;
 
     private int mRatioWidth = 0;
     private int mRatioHeight = 0;
@@ -48,22 +50,22 @@ public class AutoFitTextureView extends TextureView {
 
     private AutoFitTextureViewInterface autoFitTextureViewInterface;
 
-    public AutoFitTextureView(Context context) {
-        this(context, null);
+    public AutoFitTextureView(TextureView textureView) {
+        this.textureView = textureView;
+        textureView.setSurfaceTextureListener(this);
+
 
     }
 
-    public AutoFitTextureView(Context context, AttributeSet attrs) {
-        this(context, attrs, 0);
-    }
-
-    public AutoFitTextureView(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
+    public SurfaceTexture getSurfaceTexture() {
+        return textureView.getSurfaceTexture();
     }
 
     public void setAutoFitTextureViewInterface(AutoFitTextureViewInterface autoFitTextureViewInterface) {
         this.autoFitTextureViewInterface = autoFitTextureViewInterface;
     }
+
+
 
     /**
      * Sets the aspect ratio for this view. The size of the view will be measured based on the ratio
@@ -79,60 +81,39 @@ public class AutoFitTextureView extends TextureView {
         }
         mRatioWidth = width;
         mRatioHeight = height;
-        requestLayout();
+        textureView.requestLayout();
+    }
+
+
+    @Override
+    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+        // TODO Auto-generated method stub
+        //Log.i(TAG, "onSurfaceTextureUpdated()");
+
     }
 
     @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        int width = MeasureSpec.getSize(widthMeasureSpec);
-        int height = MeasureSpec.getSize(heightMeasureSpec);
-        if (0 == mRatioWidth || 0 == mRatioHeight) {
-            setMeasuredDimension(width, height);
-        } else {
-            if (width < height * mRatioWidth / mRatioHeight) {
-                setMeasuredDimension(width, width * mRatioHeight / mRatioWidth);
-            } else {
-                setMeasuredDimension(height * mRatioWidth / mRatioHeight, height);
-            }
-        }
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width,
+                                            int height) {
+        // TODO Auto-generated method stub
+        Log.i(TAG, "onSurfaceTextureSizeChanged()");
+        //updateTextureMatrix(width, height);
     }
-    private TextureView.SurfaceTextureListener mSurfaceTextureListner = new TextureView.SurfaceTextureListener() {
 
-        @Override
-        public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-            // TODO Auto-generated method stub
-            //Log.i(TAG, "onSurfaceTextureUpdated()");
+    @Override
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+        // TODO Auto-generated method stub
+        Log.i(TAG, "onSurfaceTextureDestroyed()");
+        return false;
+    }
 
+    @Override
+    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width,
+                                          int height) {
+        // TODO Auto-generated method stub
+        if (autoFitTextureViewInterface != null) {
+            autoFitTextureViewInterface.onSurfaceTextureAvailable(surface, width, height);
         }
 
-        @Override
-        public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width,
-                                                int height) {
-            // TODO Auto-generated method stub
-            Log.i(TAG, "onSurfaceTextureSizeChanged()");
-            //updateTextureMatrix(width, height);
-        }
-
-        @Override
-        public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-            // TODO Auto-generated method stub
-            Log.i(TAG, "onSurfaceTextureDestroyed()");
-            return false;
-        }
-
-        @Override
-        public void onSurfaceTextureAvailable(SurfaceTexture surface, int width,
-                                              int height) {
-            // TODO Auto-generated method stub
-            if (autoFitTextureViewInterface != null) {
-                autoFitTextureViewInterface.onSurfaceTextureAvailable(surface, width, height);
-            }
-
-        }
-    };
-
-    public SurfaceTextureListener getmSurfaceTextureListner() {
-        return mSurfaceTextureListner;
     }
 }
