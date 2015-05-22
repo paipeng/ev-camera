@@ -28,6 +28,7 @@ import android.widget.RelativeLayout;
 
 import com.paipeng.evcamera.helper.CameraHelper;
 import com.paipeng.evcamera.views.AutoFitTextureView;
+import com.paipeng.evcamera.views.PreviewOverlay;
 
 import java.util.Arrays;
 
@@ -36,8 +37,9 @@ public class MainActivity extends Activity {
 
     private final static String TAG = MainActivity.class.getSimpleName();
     private CameraHelper cameraHelper;
-    private AutoFitTextureView textureView;
 
+    private AutoFitTextureView textureView;
+    private PreviewOverlay previewOverlay;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +54,7 @@ public class MainActivity extends Activity {
         textureView = new AutoFitTextureView((TextureView) findViewById(R.id.cameraPreviewTextureView));
         cameraHelper = new CameraHelper(this, textureView);
 
+        previewOverlay = (PreviewOverlay) findViewById(R.id.previewOverlay);
         //mTextureView.setRotation(-90.0f);
     }
 

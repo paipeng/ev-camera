@@ -1,6 +1,7 @@
 package com.paipeng.evcamera.helper;
 
 import android.content.Context;
+import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -14,8 +15,10 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
 import android.util.Size;
+import android.view.Display;
 import android.view.Surface;
 import android.view.TextureView;
+import android.view.WindowManager;
 
 import com.paipeng.evcamera.views.AutoFitTextureView;
 import com.paipeng.evcamera.views.AutoFitTextureViewInterface;
@@ -68,9 +71,23 @@ public class CameraHelper implements AutoFitTextureViewInterface {
 
             int s = mPreviewSize.getWidth() >= mPreviewSize.getHeight() ? mPreviewSize.getHeight(): mPreviewSize.getWidth();
 
+            WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+            Display display = wm.getDefaultDisplay();
+            Point screenSize = new Point();
+            display.getSize(screenSize);
 
-            texture.setDefaultBufferSize(mPreviewSize.getHeight(), mPreviewSize.getWidth());
+            int w, h;
+            if (screenSize.x < screenSize.y) {
+                w = screenSize.x;
 
+            } else {
+                w = screenSize.y;
+            }
+            h = w*4/3;
+            textureView.setAspectRatio(w, h);
+
+            //texture.setDefaultBufferSize(mPreviewSize.getHeight(), mPreviewSize.getWidth());
+            //texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
             Surface surface = new Surface(texture);
 
             try {
@@ -142,6 +159,7 @@ public class CameraHelper implements AutoFitTextureViewInterface {
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
         Log.i(TAG, "onSurfaceTextureAvailable()" + width + "-" + height);
+
 
         CameraManager manager = (CameraManager) context.getSystemService(context.CAMERA_SERVICE);
         try{

@@ -34,6 +34,7 @@ import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
+import android.widget.FrameLayout;
 
 import java.util.Arrays;
 
@@ -76,12 +77,17 @@ public class AutoFitTextureView implements TextureView.SurfaceTextureListener{
      * @param height Relative vertical size
      */
     public void setAspectRatio(int width, int height) {
+        Log.d(TAG, "setAspectRatio " + width + "-" + height);
         if (width < 0 || height < 0) {
             throw new IllegalArgumentException("Size cannot be negative.");
         }
         mRatioWidth = width;
         mRatioHeight = height;
-        textureView.requestLayout();
+        //textureView.requestLayout();
+
+        textureView.setLayoutParams(new FrameLayout.LayoutParams(width, height));
+
+
     }
 
 
@@ -111,9 +117,9 @@ public class AutoFitTextureView implements TextureView.SurfaceTextureListener{
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width,
                                           int height) {
         // TODO Auto-generated method stub
+
         if (autoFitTextureViewInterface != null) {
             autoFitTextureViewInterface.onSurfaceTextureAvailable(surface, width, height);
         }
-
     }
 }
