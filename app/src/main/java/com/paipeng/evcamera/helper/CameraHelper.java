@@ -19,6 +19,7 @@ import android.view.TextureView;
 import java.util.Arrays;
 
 import android.content.Context;
+import android.widget.FrameLayout;
 
 import com.paipeng.evcamera.R;
 
@@ -89,6 +90,7 @@ public class CameraHelper {
                 }
                 mPreviewSize = map.getOutputSizes(SurfaceTexture.class)[0];
 
+                mTextureView.setLayoutParams(new FrameLayout.LayoutParams(mPreviewSize.getHeight(), mPreviewSize.getWidth()));
                 manager.openCamera(cameraId, mStateCallback, null);
             }
             catch(CameraAccessException e)
