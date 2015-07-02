@@ -99,7 +99,7 @@ public class MainActivity extends Activity {
 
             texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
 
-            mTextureView.setRotation(-90.0f);
+            //mTextureView.setRotation(-90.0f);
 
             Surface surface = new Surface(texture);
 
@@ -142,7 +142,7 @@ public class MainActivity extends Activity {
 
             mPreviewBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
 
-            HandlerThread backgroundThread = new HandlerThread("CameraPreview");
+            HandlerThread backgroundThread = new HandlerThread("CameraPreviewOverlay");
             backgroundThread.start();
             Handler backgroundHandler = new Handler(backgroundThread.getLooper());
 
