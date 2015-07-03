@@ -53,7 +53,8 @@ public class MainActivity extends Activity {
                 public void onClick(View v) {
                     Log.d(TAG, "capture");
                     //cameraHelper.setExposureCompensation();
-                    cameraHelper.takePicture();
+                    //cameraHelper.takePicture();
+                    cameraHelper.functionTakePicture(0);
                 }
             });
 
@@ -61,6 +62,51 @@ public class MainActivity extends Activity {
             Log.e(TAG, "captureButton invalid");
         }
 
+        Button captueButton2 = (Button) findViewById(R.id.captueButton2);
+
+        if (captueButton2 != null) {
+            captueButton2.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.d(TAG, "capture2");
+                    //cameraHelper.setExposureCompensation();
+                    //cameraHelper.takePicture();
+                    cameraHelper.functionTakePicture(1);
+                }
+            });
+
+        } else {
+            Log.e(TAG, "captueButton2 invalid");
+        }
+        Button captueButton3 = (Button) findViewById(R.id.captueButton3);
+
+        if (captueButton3 != null) {
+            captueButton3.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.d(TAG, "capture3");
+                    cameraHelper.functionTakePicture(2);
+                }
+            });
+
+        } else {
+            Log.e(TAG, "captueButton3 invalid");
+        }
+
+        Button captueButton4 = (Button) findViewById(R.id.captueButton4);
+
+        if (captueButton4 != null) {
+            captueButton4.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.d(TAG, "capture4");
+                    cameraHelper.functionTakePicture(3);
+                }
+            });
+
+        } else {
+            Log.e(TAG, "captureButton4 invalid");
+        }
     }
 
     @Override

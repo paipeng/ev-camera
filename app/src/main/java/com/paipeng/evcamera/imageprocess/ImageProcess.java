@@ -7,6 +7,7 @@ import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.media.Image;
+import android.opengl.Matrix;
 import android.util.Log;
 
 import java.io.ByteArrayInputStream;
@@ -53,12 +54,15 @@ public class ImageProcess {
     public static Bitmap convertImageToBitmap2(Image image) {
         Image.Plane[] planes = image.getPlanes();
         ByteBuffer buffer = planes[0].getBuffer();
-        buffer.rewind();
+        //buffer.rewind();
         byte[] data = new byte[buffer.capacity()];
         buffer.get(data);
         Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-        if (bitmap==null)
+        if (bitmap==null) {
             Log.e(TAG, "bitmap is null");
+        } else {
+            Log.i(TAG, "bitmap valid!!");
+        }
         return  bitmap;
     }
 
@@ -70,10 +74,29 @@ public class ImageProcess {
         return imageBytes;
     }
 
+    public static Bitmap cropSquareBitmap(Bitmap bitmap) {
+        Log.i(TAG, "cropSquareBitmap " + bitmap.getWidth() + " - " + bitmap.getHeight());
+        int length = (bitmap.getHeight() > bitmap.getWidth() )? bitmap.getWidth():bitmap.getHeight();
+        Log.i(TAG, "length " + length);
+        int offset_x = 0;
+        int offset_y = 0;
+
+        if (length == bitmap.getWidth()) {
+            offset_y = ( bitmap.getHeight() - bitmap.getWidth());
+        } else {
+            offset_x = (bitmap.getWidth() - bitmap.getHeight());
+        }
+
+        Log.i(TAG, "offset " + offset_x + " - " + offset_y);
+
+        return Bitmap.createBitmap(bitmap, offset_x, offset_y, length, length);
+    }
+
     public static byte[] doFilter(Image image) {
         Bitmap bitmap = convertImageToBitmap2(image);
         //Bitmap filtedBitmap = changeBitmapContrastBrightness(bitmap, 2.0f, 1.0f);
 
-        return convertBitmapToBytes(bitmap);
+        Bitmap croppedBitmap = cropSquareBitmap(bitmap);
+        return convertBitmapToBytes(croppedBitmap);
     }
 }
