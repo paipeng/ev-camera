@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
@@ -20,6 +21,7 @@ import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -27,6 +29,7 @@ import android.os.HandlerThread;
 import android.os.Message;
 import android.util.Log;
 import android.util.Size;
+import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.TextureView;
 import android.widget.FrameLayout;
@@ -37,10 +40,12 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -50,6 +55,20 @@ import java.util.concurrent.TimeUnit;
  */
 public class CameraHelper {
     private static final String TAG = CameraHelper.class.getSimpleName();
+
+    /**
+     * Conversion from screen rotation to JPEG orientation.
+     */
+    private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
+
+    static {
+        ORIENTATIONS.append(Surface.ROTATION_0, 90);
+        ORIENTATIONS.append(Surface.ROTATION_90, 0);
+        ORIENTATIONS.append(Surface.ROTATION_180, 270);
+        ORIENTATIONS.append(Surface.ROTATION_270, 180);
+    }
+
+
     private Size mPreviewSize = null;
 
     private TextureView mTextureView = null;
@@ -93,6 +112,7 @@ public class CameraHelper {
      */
     private ImageReader mImageReader;
 
+    private File newFolder;
     /**
      * This is the output file for our picture.
      */
@@ -120,6 +140,7 @@ public class CameraHelper {
     private static final int STATE_PICTURE_TAKEN = 4;
 
     private int mState;
+
 
     /**
      * A {@link Semaphore} to prevent the app from exiting before closing the camera.
@@ -360,7 +381,7 @@ public class CameraHelper {
                     Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
                     new CompareSizesByArea());
             mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
-                    ImageFormat.JPEG, 2);
+                    ImageFormat.JPEG, 1);
             mImageReader.setOnImageAvailableListener(
                     mOnImageAvailableListener, mBackgroundHandler);
 
@@ -385,6 +406,14 @@ public class CameraHelper {
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
+    }
+
+    private void galleryAddPic() {
+        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        File f = new File(this.newFolder.getPath());
+        Uri contentUri = Uri.fromFile(f);
+        mediaScanIntent.setData(contentUri);
+        context.sendBroadcast(mediaScanIntent);
     }
 
     /**
@@ -566,15 +595,9 @@ public class CameraHelper {
         //mFile = new File(context.getExternalFilesDir(null), "pic.jpg");
 
         try {
-            File newFolder = new File(Environment.getExternalStorageDirectory(), "EVCamera");
+            newFolder = new File(Environment.getExternalStorageDirectory(), "EVCamera");
             if (!newFolder.exists()) {
                 newFolder.mkdir();
-            }
-            try {
-                mFile = new File(newFolder, "pic.jpg");
-                //file.createNewFile();
-            } catch (Exception ex) {
-                System.out.println("ex: " + ex);
             }
         } catch (Exception e) {
             System.out.println("e: " + e);
@@ -591,21 +614,10 @@ public class CameraHelper {
     }
 
     public void setExposureCompensation() {
-        /*
-        mPreviewBuilder.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION, Integer.valueOf(-12));
-        HandlerThread backgroundThread = new HandlerThread("CameraPreview");
-        backgroundThread.start();
-        Handler backgroundHandler = new Handler(backgroundThread.getLooper());
+        Log.i(TAG, "setExposureCompensation");
+        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION, Integer.valueOf(-2));
+        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_EFFECT_MODE, CameraMetadata.CONTROL_EFFECT_MODE_MONO);
 
-        try {
-            mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, backgroundHandler);
-            takePicture();
-
-            //captureStillPicture();
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
-        */
     }
 
     public void takePicture() {
@@ -619,6 +631,7 @@ public class CameraHelper {
         Log.d(TAG, "lockFocus");
         try {
             // This is how to tell the camera to lock focus.
+            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_EFFECT_MODE, CameraMetadata.CONTROL_EFFECT_MODE_MONO);
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
                     CameraMetadata.CONTROL_AF_TRIGGER_START);
             // Tell #mCaptureCallback to wait for the lock.
@@ -659,7 +672,7 @@ public class CameraHelper {
             = new CameraCaptureSession.CaptureCallback() {
 
         private void process(CaptureResult result) {
-            Log.i(TAG, "CaptureCallback " + result.toString());
+            //Log.i(TAG, "CaptureCallback " + result.toString());
 
             switch (mState) {
                 case STATE_PREVIEW: {
@@ -755,9 +768,22 @@ public class CameraHelper {
             captureBuilder.set(CaptureRequest.CONTROL_AE_MODE,
                     CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
 
+            captureBuilder.set(CaptureRequest.CONTROL_EFFECT_MODE, CameraMetadata.CONTROL_EFFECT_MODE_MONO);
+
             // Orientation
             //int rotation = context.getWindowManager().getDefaultDisplay().getRotation();
-            //captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
+            captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(90));
+
+            try {
+                SimpleDateFormat s = new SimpleDateFormat("yyyy-MM-dd_hh:mm:ss");
+                String format = s.format(new Date());
+
+                mFile = new File(newFolder, "PIC_" +format + ".jpg");
+                //file.createNewFile();
+            } catch (Exception ex) {
+                System.out.println("ex: " + ex);
+            }
+
 
             CameraCaptureSession.CaptureCallback CaptureCallback
                     = new CameraCaptureSession.CaptureCallback() {
@@ -777,33 +803,6 @@ public class CameraHelper {
         }
     }
 
-    /**
-     * Unlock the focus. This method should be called when still image capture sequence is finished.
-     */
-    private void unlockFocus2() {
-        /*
-        try {
-            // Reset the autofucos trigger
-            mPreviewBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
-                    CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
-            mPreviewBuilder.set(CaptureRequest.CONTROL_AE_MODE,
-                    CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
-
-            HandlerThread backgroundThread = new HandlerThread("CameraPreview");
-            backgroundThread.start();
-            Handler backgroundHandler = new Handler(backgroundThread.getLooper());
-
-            mPreviewSession.capture(mPreviewBuilder.build(), mCaptureCallback,
-                    backgroundHandler);
-            // After this, the camera will go back to the normal state of preview.
-            mState = STATE_PREVIEW;
-            //mPreviewSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback,
-            //        backgroundHandler);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
-        */
-    }
     /**
      * Unlock the focus. This method should be called when still image capture sequence is finished.
      */
@@ -897,13 +896,22 @@ public class CameraHelper {
 
         @Override
         public void run() {
+
+
             ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
             byte[] bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
+
+
+
+            //byte[] bytes = ImageProcess.doFilter(mImage);
+
             FileOutputStream output = null;
             try {
                 output = new FileOutputStream(mFile);
                 output.write(bytes);
+
+                //galleryAddPic();
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -921,6 +929,7 @@ public class CameraHelper {
         }
 
     }
+
 
     public static class ErrorDialog extends DialogFragment {
 
