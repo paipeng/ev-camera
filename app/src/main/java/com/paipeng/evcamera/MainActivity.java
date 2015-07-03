@@ -46,14 +46,31 @@ public class MainActivity extends Activity {
         previewOverlay.setScreenSize(screenSize);
 
         Button captueButton = (Button) findViewById(R.id.captueButton);
-        captueButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "capture");
-                //cameraHelper.setExposureCompensation();
-                cameraHelper.takePicture();
-            }
-        });
+
+        if (captueButton != null) {
+            captueButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.d(TAG, "capture");
+                    //cameraHelper.setExposureCompensation();
+                    cameraHelper.takePicture();
+                }
+            });
+
+        } else {
+            Log.e(TAG, "captureButton invalid");
+        }
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (cameraHelper != null) {
+            cameraHelper.startBackgroundThread();
+            cameraHelper.restartCamera();
+        }
 
     }
 
@@ -62,6 +79,9 @@ public class MainActivity extends Activity {
         // TODO Auto-generated method stub
         super.onPause();
 
-        cameraHelper.stopCamera();
+        if (cameraHelper != null) {
+            cameraHelper.stopCamera();
+            cameraHelper.stopBackgroundThread();
+        }
     }
 }
