@@ -7,15 +7,13 @@ package com.paipeng.evcamera.view;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
-import android.util.AttributeSet;
-import android.view.View;
-import android.util.Size;
-import android.util.Log;
 import android.graphics.PorterDuff;
-
 import android.graphics.PorterDuffXfermode;
+import android.util.AttributeSet;
+import android.util.Log;
+import android.util.Size;
+import android.view.View;
 
 /**
  * Created by paipeng on 22/05/15.
@@ -76,9 +74,14 @@ public class CameraPreviewOverlay extends View {
 
         //paint.setStrokeWidth(0);
         //paint.setColor(Color.CYAN);
-        int offset = (screenSize.getHeight()-screenSize.getWidth())/2;
-        canvas.drawRect(0, 0, screenSize.getWidth(), 200, paint);
-        canvas.drawRect(0, offset+screenSize.getWidth(), screenSize.getWidth(), screenSize.getHeight(), paint);
+        float offset = (screenSize.getHeight()-screenSize.getWidth())/2.0f;
+        Log.i(TAG, "offset " + offset);
+
+        canvas.drawRect(0, 0, screenSize.getWidth(), offset, paint);
+
+
+
+        canvas.drawRect(0, (screenSize.getWidth() + offset), screenSize.getWidth(), screenSize.getHeight(), paint);
 
         //paint.setColor(Color.YELLOW);
         //canvas.drawRect(33, 33, 77, 60, paint);
