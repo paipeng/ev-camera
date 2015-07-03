@@ -147,38 +147,7 @@ public class CameraHelper {
      */
     private Semaphore mCameraOpenCloseLock = new Semaphore(1);
 
-
-/*
-    private CameraCaptureSession.StateCallback mPreviewStateCallback = new CameraCaptureSession.StateCallback() {
-
-        @Override
-        public void onConfigured(CameraCaptureSession session) {
-            // TODO Auto-generated method stub
-            Log.i(TAG, "onConfigured");
-            mPreviewSession = session;
-
-            mPreviewBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
-
-            HandlerThread backgroundThread = new HandlerThread("CameraPreviewOverlay");
-            backgroundThread.start();
-            Handler backgroundHandler = new Handler(backgroundThread.getLooper());
-
-            try {
-                mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, backgroundHandler);
-            } catch (CameraAccessException e) {
-                e.printStackTrace();
-            }
-
-        }
-
-        @Override
-        public void onConfigureFailed(CameraCaptureSession session) {
-            // TODO Auto-generated method stub
-            Log.e(TAG, "CameraCaptureSession Configure failed");
-        }
-    };
-
-    */
+    
     private CameraDevice.StateCallback mStateCallback = new CameraDevice.StateCallback() {
 
         @Override
@@ -190,34 +159,7 @@ public class CameraHelper {
             mCameraDevice = camera;
 
             createCameraPreviewSession();
-            /*
-            SurfaceTexture texture = mTextureView.getSurfaceTexture();
-            if (texture == null) {
-                Log.e(TAG, "texture is null");
-                return;
-            }
 
-
-            texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
-
-            //mTextureView.setRotation(-90.0f);
-
-            Surface surface = new Surface(texture);
-
-            try {
-                mPreviewBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            } catch (CameraAccessException e) {
-                e.printStackTrace();
-            }
-
-            mPreviewBuilder.addTarget(surface);
-
-            try {
-                mCameraDevice.createCaptureSession(Arrays.asList(surface), mPreviewStateCallback, null);
-            } catch (CameraAccessException e) {
-                e.printStackTrace();
-            }
-            */
         }
 
         @Override
@@ -641,28 +583,6 @@ public class CameraHelper {
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
-    }
-
-    private void lockFocus2() {
-          /* try {
-
-            Log.i(TAG, "lockFocus");
-            // This is how to tell the camera to lock focus.
-            mPreviewBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
-                    CameraMetadata.CONTROL_AF_TRIGGER_START);
-            // Tell #mCaptureCallback to wait for the lock.
-            mState = STATE_WAITING_LOCK;
-
-            HandlerThread backgroundThread = new HandlerThread("CameraPreview");
-            backgroundThread.start();
-            Handler backgroundHandler = new Handler(backgroundThread.getLooper());
-
-            mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), mCaptureCallback,
-                    backgroundHandler);
-
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        } */
     }
 
     /**
