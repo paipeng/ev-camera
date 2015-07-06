@@ -2,8 +2,10 @@ package com.paipeng.evcamera;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Point;
 import android.hardware.camera2.CameraManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
@@ -19,6 +21,8 @@ import com.paipeng.evcamera.helper.CameraHelper;
 import com.paipeng.evcamera.helper.CameraHelperInterface;
 import com.paipeng.evcamera.view.AutoFitTextureView;
 import com.paipeng.evcamera.view.CameraPreviewOverlay;
+
+import java.io.File;
 
 public class MainActivity extends Activity implements CameraHelperInterface {
 
@@ -172,5 +176,11 @@ public class MainActivity extends Activity implements CameraHelperInterface {
 
     public void handleMessage(Message message) {
         Toast.makeText(this, (String) message.obj, Toast.LENGTH_SHORT).show();
+    }
+
+    public void addPictureToGallery(Uri fileUrl) {
+        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        mediaScanIntent.setData(fileUrl);
+        sendBroadcast(mediaScanIntent);
     }
 }

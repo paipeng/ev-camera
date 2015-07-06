@@ -29,25 +29,29 @@
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:layout_gravity="left"
+            android:gravity="center"
+            android:layout_marginLeft="20dp"
             >
             <Button
-                android:layout_weight="0.5"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text=""
                 android:id="@+id/captueButton3"
                 android:layout_gravity="top"
+                android:layout_marginBottom="20dp"
                 android:background="@mipmap/camera_button"
                 android:layout_alignParentBottom="true"
+                android:visibility="invisible"
                 android:layout_alignParentStart="true" />
 
             <Button
-                android:layout_weight="0.5"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text=""
                 android:id="@+id/captueButton4"
                 android:layout_gravity="top"
+                android:layout_marginTop="20dp"
+                android:visibility="invisible"
                 android:background="@mipmap/camera_button"
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentStart="true" />

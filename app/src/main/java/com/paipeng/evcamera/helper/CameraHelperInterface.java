@@ -1,5 +1,7 @@
 package com.paipeng.evcamera.helper;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Message;
 
 /**
@@ -8,4 +10,5 @@ import android.os.Message;
 public interface CameraHelperInterface {
     public void onSurfaceTextureSizeChanged(int width, int height);
     public void handleMessage(Message message);
+    public void addPictureToGallery(Uri fileUrl);
 }

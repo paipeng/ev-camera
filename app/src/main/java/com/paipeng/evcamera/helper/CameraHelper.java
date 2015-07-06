@@ -23,6 +23,7 @@ import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -375,11 +376,9 @@ public class CameraHelper {
     }
 */
     private void galleryAddPic() {
-        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-        File f = new File(this.newFolder.getPath());
-        Uri contentUri = Uri.fromFile(f);
-        mediaScanIntent.setData(contentUri);
-        //cameraHelperInterface.sendBroadcast(mediaScanIntent);
+        Log.d(TAG, "galleryAddPic");
+        Uri contentUri = Uri.fromFile(this.newFolder);
+        cameraHelperInterface.addPictureToGallery(contentUri);
     }
 
     /**
@@ -851,7 +850,8 @@ public class CameraHelper {
 
         @Override
         public void onImageAvailable(ImageReader reader) {
-            mBackgroundHandler.post(new ImageSaver(reader.acquireLatestImage(), mFile));
+            //mBackgroundHandler.post(new ImageSaver(reader.acquireLatestImage(), mFile));
+            new ImageSaverAsyncTask(reader.acquireLatestImage(), mFile).execute("");
         }
 
     };
@@ -914,7 +914,6 @@ public class CameraHelper {
                 output = new FileOutputStream(mFile);
                 output.write(bytes);
 
-                //galleryAddPic();
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -931,6 +930,54 @@ public class CameraHelper {
             }
         }
 
+    }
+
+    private class ImageSaverAsyncTask extends AsyncTask<String, Void, String> {
+        private final Image mImage;
+        private final File mFile;
+        public ImageSaverAsyncTask(Image image, File file) {
+            mImage = image;
+            mFile = file;
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            byte[] bytes = ImageProcess.doFilter(mImage);
+
+            FileOutputStream output = null;
+            try {
+                output = new FileOutputStream(mFile);
+                output.write(bytes);
+
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                mImage.close();
+                if (null != output) {
+                    try {
+                        output.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            galleryAddPic();
+        }
+
+        @Override
+        protected void onPreExecute() {
+        }
+
+        @Override
+        protected void onProgressUpdate(Void... values) {
+        }
     }
 
 
