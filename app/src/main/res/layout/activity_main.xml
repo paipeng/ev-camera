@@ -6,7 +6,7 @@
     android:keepScreenOn="true"
     >
 
-    <TextureView
+    <com.paipeng.evcamera.view.AutoFitTextureView
         android:id="@+id/cameraPreviewTextureView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -20,16 +20,15 @@
         android:layout_gravity="left|top" />
 
     <RelativeLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="center_vertical|bottom">
+        android:layout_gravity="center_horizontal|bottom">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-
-            android:layout_gravity="top"
+            android:orientation="vertical"
+            android:layout_gravity="left"
             >
             <Button
                 android:layout_weight="0.5"
@@ -57,8 +56,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-
-            android:layout_gravity="bottom"
+            android:orientation="vertical"
+            android:layout_gravity="right"
             >
             <Button
                 android:layout_weight="0.5"
@@ -66,7 +65,7 @@
                 android:layout_height="wrap_content"
                 android:text=""
                 android:id="@+id/captueButton"
-                android:layout_gravity="bottom"
+                android:layout_gravity="right"
                 android:background="@mipmap/camera_button"
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentStart="true" />
@@ -77,7 +76,7 @@
                 android:layout_height="wrap_content"
                 android:text=""
                 android:id="@+id/captueButton2"
-                android:layout_gravity="bottom"
+                android:layout_gravity="right"
                 android:background="@mipmap/camera_button"
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentStart="true" />

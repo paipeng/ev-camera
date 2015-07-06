@@ -4,11 +4,11 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.ImageFormat;
-import android.graphics.Rect;
+import android.graphics.Matrix;
+import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -29,20 +29,20 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 import android.util.Log;
+import android.util.Range;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.TextureView;
-import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import com.paipeng.evcamera.imageprocess.ImageProcess;
+import com.paipeng.evcamera.view.AutoFitTextureView;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,8 +74,8 @@ public class CameraHelper {
 
     private Size mPreviewSize = null;
 
-    private TextureView mTextureView = null;
-    private Context context;
+    private AutoFitTextureView mTextureView = null;
+    private CameraHelperInterface cameraHelperInterface;
     private Size screenSize;
 
     private CameraDevice mCameraDevice = null;
@@ -146,11 +146,14 @@ public class CameraHelper {
 
     private int captureMode;
 
+    private CameraManager cameraManager;
 
     /**
      * A {@link Semaphore} to prevent the app from exiting before closing the camera.
      */
     private Semaphore mCameraOpenCloseLock = new Semaphore(1);
+
+    private Range<Integer> aeRange;
 
 
     private CameraDevice.StateCallback mStateCallback = new CameraDevice.StateCallback() {
@@ -292,12 +295,20 @@ public class CameraHelper {
      * @param viewHeight The height of `mTextureView`
      */
     private void configureTransform(int viewWidth, int viewHeight) {
-        if (null == mTextureView || null == mPreviewSize || null == context) {
+        if (null == mTextureView || null == mPreviewSize) {
             return;
         }
-        /*
-        int rotation = context.getWindowManager().getDefaultDisplay().getRotation();
+        float offsetY = (viewWidth - mPreviewSize.getWidth()) / 2.0f;
+        Log.i(TAG, "offsetY " + offsetY*2);
+        mTextureView.setTranslationX(offsetY);
+
+        viewWidth = mPreviewSize.getWidth();
+        viewHeight = mPreviewSize.getHeight();
+
+        //int rotation = context.getWindowManager().getDefaultDisplay().getRotation();
+        int rotation = Surface.ROTATION_90;
         Matrix matrix = new Matrix();
+
         RectF viewRect = new RectF(0, 0, viewWidth, viewHeight);
         RectF bufferRect = new RectF(0, 0, mPreviewSize.getHeight(), mPreviewSize.getWidth());
         float centerX = viewRect.centerX();
@@ -310,11 +321,19 @@ public class CameraHelper {
                     (float) viewWidth / mPreviewSize.getWidth());
             matrix.postScale(scale, scale, centerX, centerY);
             matrix.postRotate(90 * (rotation - 2), centerX, centerY);
+            //matrix.postTranslate(600, 0);
         }
         mTextureView.setTransform(matrix);
+
+        /*
+        mTextureView.setLayoutParams(new FrameLayout.LayoutParams(mPreviewSize.getHeight(), mPreviewSize.getWidth()));
+
         */
+
+        //mTextureView.setTranslationY(offsetY);
     }
 
+    /*
     private void openCameraWorked() {
         CameraManager manager = (CameraManager) CameraHelper.this.context.getSystemService(CameraHelper.this.context.CAMERA_SERVICE);
         try {
@@ -354,13 +373,13 @@ public class CameraHelper {
             e.printStackTrace();
         }
     }
-
+*/
     private void galleryAddPic() {
         Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
         File f = new File(this.newFolder.getPath());
         Uri contentUri = Uri.fromFile(f);
         mediaScanIntent.setData(contentUri);
-        context.sendBroadcast(mediaScanIntent);
+        //cameraHelperInterface.sendBroadcast(mediaScanIntent);
     }
 
     /**
@@ -371,11 +390,10 @@ public class CameraHelper {
      */
     private void setUpCameraOutputs(int width, int height) {
         Log.i(TAG, "setUpCameraOutputs " + width + " - " + height);
-        CameraManager manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         try {
-            for (String cameraId : manager.getCameraIdList()) {
+            for (String cameraId : cameraManager.getCameraIdList()) {
                 CameraCharacteristics characteristics
-                        = manager.getCameraCharacteristics(cameraId);
+                        = cameraManager.getCameraCharacteristics(cameraId);
 
                 // We don't use a front facing camera in this sample.
                 if (characteristics.get(CameraCharacteristics.LENS_FACING)
@@ -385,6 +403,11 @@ public class CameraHelper {
 
                 StreamConfigurationMap map = characteristics.get(
                         CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+
+
+                aeRange = characteristics.get(
+                        CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE);
+
 
                 // For still image captures, we use the largest available size.
                 Size largest = Collections.max(
@@ -400,6 +423,11 @@ public class CameraHelper {
                 // garbage capture data.
                 mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),
                         width, height, largest);
+
+                Log.d(TAG, "mPreviewSize " + mPreviewSize.getWidth() + " - " + mPreviewSize.getHeight());
+
+                mTextureView.setAspectRatio(
+                        mPreviewSize.getWidth(), mPreviewSize.getHeight());
 
                 // We fit the aspect ratio of TextureView to the size of preview we picked.
                 /*
@@ -431,7 +459,7 @@ public class CameraHelper {
     private Handler mMessageHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            Toast.makeText(context, (String) msg.obj, Toast.LENGTH_SHORT).show();
+            cameraHelperInterface.handleMessage(msg);
         }
     };
 
@@ -481,6 +509,7 @@ public class CameraHelper {
     }
 
     public void restartCamera() {
+        Log.d(TAG, "restartCamera");
         if (mTextureView.isAvailable()) {
             openCamera(mTextureView.getWidth(), mTextureView.getHeight());
         } else {
@@ -492,15 +521,16 @@ public class CameraHelper {
     /**
      * Opens the camera specified by {@link CameraHelper#mCameraId}.
      */
-    public void openCamera(int width, int height) {
+    private void openCamera(int width, int height) {
+        Log.d(TAG, "openCamera " + width + " - " + height);
         setUpCameraOutputs(width, height);
-        //configureTransform(width, height);
-        CameraManager manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+        configureTransform(width, height);
+
         try {
             if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                 throw new RuntimeException("Time out waiting to lock camera opening.");
             }
-            manager.openCamera(mCameraId, mStateCallback, mBackgroundHandler);
+            cameraManager.openCamera(mCameraId, mStateCallback, mBackgroundHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -533,8 +563,9 @@ public class CameraHelper {
         }
     }
 
-    public CameraHelper(Context context, TextureView mTextureView, Size screenSize) {
-        this.context = context;
+    public CameraHelper(CameraHelperInterface cameraHelperInterface, CameraManager cameraManager, AutoFitTextureView mTextureView, Size screenSize) {
+        this.cameraHelperInterface = cameraHelperInterface;
+        this.cameraManager = cameraManager;
         this.mTextureView = mTextureView;
         this.screenSize = screenSize;
 
@@ -558,31 +589,24 @@ public class CameraHelper {
             mCameraDevice.close();
             mCameraDevice = null;
         }
-    }
-
-    public void setExposureCompensation() {
-        Log.i(TAG, "setExposureCompensation");
-        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION, Integer.valueOf(-2));
-        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_EFFECT_MODE, CameraMetadata.CONTROL_EFFECT_MODE_MONO);
 
     }
 
-    public void takePicture() {
-        lockFocus();
-
-    }
 
     public void functionTakePicture(int captureMode) {
         Log.i(TAG, "functionTakePicture " + captureMode);
         this.captureMode = captureMode;
 
-        if (captureMode == 0 || captureMode == 1) {
+        if (captureMode == 0 || captureMode == 1 || captureMode == 3) {
             lockFocus();
         } else if (captureMode == 2) {
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_LOCK, !mPreviewRequestBuilder.get(CaptureRequest.CONTROL_AE_LOCK));
+
             try {
                 mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback,
                         mBackgroundHandler);
+
+
             } catch (CameraAccessException e) {
                 e.printStackTrace();
             }
@@ -597,10 +621,22 @@ public class CameraHelper {
         try {
             if (captureMode == 0) {
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_EFFECT_MODE, CameraMetadata.CONTROL_EFFECT_MODE_MONO);
+            } else if (captureMode == 2) {
+                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_LOCK, true);
+
+            } else if (captureMode == 3) {
+                Log.d(TAG, "AE exposure min " + aeRange.getLower());
+                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION, aeRange.getLower());
             }
+            if (mPreviewRequestBuilder.get(CaptureRequest.CONTROL_AE_LOCK)) {
+                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_LOCK, true);
+            } else {
+                Log.d(TAG, "AE-unlocked");
+            }
+
+
             // This is how to tell the camera to lock focus.
-            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
-                    CameraMetadata.CONTROL_AF_TRIGGER_START);
+            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
             // Tell #mCaptureCallback to wait for the lock.
             mState = STATE_WAITING_LOCK;
             mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback,
@@ -617,7 +653,7 @@ public class CameraHelper {
             = new CameraCaptureSession.CaptureCallback() {
 
         private void process(CaptureResult result) {
-            //Log.i(TAG, "CaptureCallback " + result.toString());
+            Log.i(TAG, "CaptureCallback " + result.get(CaptureResult.CONTROL_AF_STATE));
 
             switch (mState) {
                 case STATE_PREVIEW: {
@@ -718,15 +754,22 @@ public class CameraHelper {
 
             if (captureMode == 0) {
                 captureBuilder.set(CaptureRequest.CONTROL_EFFECT_MODE, CameraMetadata.CONTROL_EFFECT_MODE_MONO);
+            } else if (captureMode == 3) {
+                captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF);
+                captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF);
+
+                //captureBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, 1l);
+                captureBuilder.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION, -12);
+
             }
 
             if (mPreviewRequestBuilder.get(CaptureRequest.CONTROL_AE_LOCK)) {
-                captureBuilder.set(CaptureRequest.CONTROL_AE_LOCK, true);
-
+                captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_OFF);
             }
 
-            //Rect cropRectangle = new Rect(0, 0, 640, 640);
-            //captureBuilder.set(CaptureRequest.SCALER_CROP_REGION, cropRectangle);
+
+
+
 
             // Orientation
             //int rotation = context.getWindowManager().getDefaultDisplay().getRotation();

@@ -1,24 +1,28 @@
 package com.paipeng.evcamera;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Point;
+import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
+import android.os.Message;
 import android.util.Log;
 import android.util.Size;
 import android.view.Display;
-import android.view.TextureView;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.paipeng.evcamera.helper.CameraHelper;
+import com.paipeng.evcamera.helper.CameraHelperInterface;
+import com.paipeng.evcamera.view.AutoFitTextureView;
 import com.paipeng.evcamera.view.CameraPreviewOverlay;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements CameraHelperInterface {
 
     private final static String TAG = "SimpleCamera";
-
 
     private CameraHelper cameraHelper;
 
@@ -27,10 +31,39 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+
+        View decorView = getWindow().getDecorView();
+        decorView.setOnSystemUiVisibilityChangeListener
+                (new View.OnSystemUiVisibilityChangeListener() {
+                    @Override
+                    public void onSystemUiVisibilityChange(int visibility) {
+                        Log.d(TAG, "onSystemUiVisibilityChange " + visibility);
+                        // Note that system bars will only be "visible" if none of the
+                        // LOW_PROFILE, HIDE_NAVIGATION, or FULLSCREEN flags are set.
+                        if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0) {
+                            // TODO: The system bars are visible. Make any desired
+                            // adjustments to your UI, such as showing the action bar or
+                            // other navigational controls.
+                            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+                        } else {
+                            // TODO: The system bars are NOT visible. Make any desired
+                            // adjustments to your UI, such as hiding the action bar or
+                            // other navigational controls.
+                        }
+                    }
+                });
+        //getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+
+        //getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+
+        CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+
         //same as set-up android:screenOrientation="portrait" in <activity>, AndroidManifest.xml
         //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
-        TextureView mTextureView = (TextureView) findViewById(R.id.cameraPreviewTextureView);
+        AutoFitTextureView mTextureView = (AutoFitTextureView) findViewById(R.id.cameraPreviewTextureView);
 
         CameraPreviewOverlay previewOverlay = (CameraPreviewOverlay) findViewById(R.id.cameraPreviewOverlay);
 
@@ -41,7 +74,7 @@ public class MainActivity extends Activity {
         int height = size.y;
         Size screenSize = new Size(width, height);
 
-        cameraHelper = new CameraHelper(this, mTextureView, screenSize);
+        cameraHelper = new CameraHelper(this, manager, mTextureView, screenSize);
 
         previewOverlay.setScreenSize(screenSize);
 
@@ -129,5 +162,15 @@ public class MainActivity extends Activity {
             cameraHelper.stopCamera();
             cameraHelper.stopBackgroundThread();
         }
+    }
+
+    public void onSurfaceTextureSizeChanged(int width, int height) {
+        //getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+
+
+    }
+
+    public void handleMessage(Message message) {
+        Toast.makeText(this, (String) message.obj, Toast.LENGTH_SHORT).show();
     }
 }

@@ -74,14 +74,11 @@ public class CameraPreviewOverlay extends View {
 
         //paint.setStrokeWidth(0);
         //paint.setColor(Color.CYAN);
-        float offset = (screenSize.getHeight()-screenSize.getWidth())/2.0f;
+        float offset = (screenSize.getWidth()-screenSize.getHeight())/2.0f;
         Log.i(TAG, "offset " + offset);
 
-        canvas.drawRect(0, 0, screenSize.getWidth(), offset, paint);
-
-
-
-        canvas.drawRect(0, (screenSize.getWidth() + offset), screenSize.getWidth(), screenSize.getHeight(), paint);
+        canvas.drawRect(0, 0, offset, screenSize.getHeight(), paint);
+        canvas.drawRect((screenSize.getHeight() + offset), 0, screenSize.getWidth(), screenSize.getHeight(), paint);
 
         //paint.setColor(Color.YELLOW);
         //canvas.drawRect(33, 33, 77, 60, paint);
