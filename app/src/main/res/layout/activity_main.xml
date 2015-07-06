@@ -58,28 +58,34 @@
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:layout_gravity="right"
-            >
+            android:paddingTop="60dp"
+            android:paddingBottom="60dp"
+            android:gravity="center"
+            android:layout_marginRight="20dp">
             <Button
-                android:layout_weight="0.5"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
                 android:text=""
                 android:id="@+id/captueButton"
-                android:layout_gravity="right"
-                android:background="@mipmap/camera_button"
+
+                android:layout_marginBottom="20dp"
+                android:background="@mipmap/shutter_bw"
                 android:layout_alignParentBottom="true"
-                android:layout_alignParentStart="true" />
+                android:layout_alignParentStart="true"
+                android:layout_gravity="center_vertical|right" />
 
             <Button
-                android:layout_weight="0.5"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
                 android:text=""
                 android:id="@+id/captueButton2"
-                android:layout_gravity="right"
-                android:background="@mipmap/camera_button"
+                android:layout_gravity="center_vertical|right"
+
+                android:background="@mipmap/shutter_color"
                 android:layout_alignParentBottom="true"
-                android:layout_alignParentStart="true" />
+                android:layout_alignParentStart="true"
+                android:gravity="center_vertical"
+                android:layout_marginTop="20dp" />
         </LinearLayout>
 
 

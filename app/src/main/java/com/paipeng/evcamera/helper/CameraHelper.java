@@ -653,7 +653,7 @@ public class CameraHelper {
             = new CameraCaptureSession.CaptureCallback() {
 
         private void process(CaptureResult result) {
-            Log.i(TAG, "CaptureCallback " + result.get(CaptureResult.CONTROL_AF_STATE));
+            //Log.i(TAG, "CaptureCallback " + result.get(CaptureResult.CONTROL_AF_STATE));
 
             switch (mState) {
                 case STATE_PREVIEW: {
@@ -808,6 +808,9 @@ public class CameraHelper {
      * Unlock the focus. This method should be called when still image capture sequence is finished.
      */
     private void unlockFocus() {
+        if (mCameraDevice == null) {
+            return;
+        }
         try {
             // Reset the autofucos trigger
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
